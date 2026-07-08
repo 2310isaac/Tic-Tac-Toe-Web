@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe 3D Web</title>
+    <style>
+        body {
+            background-color: #0f172a; color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 20px;
+        }
+        h1 { color: #38bdf8; margin-bottom: 5px; }
+        #status { color: #fcd34d; margin-bottom: 20px; font-weight: bold; }
+        
+        .controls { margin-bottom: 20px; display: flex; gap: 10px; }
+        input { padding: 10px; border-radius: 5px; border: none; outline: none; }
+        button {
+            padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;
+            font-weight: bold; color: white; background-color: #059669;
+        }
+        button:hover { opacity: 0.9; }
+
+        .board-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .layer { background: #1e293b; padding: 15px; border-radius: 10px; }
+        .layer h3 { margin-top: 0; text-align: center; color: #94a3b8; font-size: 14px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(4, 50px); gap: 5px; }
+        .cell {
+            width: 50px; height: 50px; background-color: #334155;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; font-weight: bold; cursor: pointer;
+            border-radius: 5px; user-select: none; transition: 0.2s;
+        }
+        .cell:hover { background-color: #475569; }
+        .cell.X { color: #0284c7; }
+        .cell.O { color: #e11d48; }
+        .cell.win { background-color: #f59e0b; color: black; }
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe 3D</h1>
+    <div id="status">Ingresa un nombre de sala para jugar con un amigo</div>
+    
+    <div class="controls" id="controls">
+        <input type="text" id="roomName" placeholder="Ej: sala123">
+        <button onclick="joinGame()">Unirse a Partida</button>
+    </div>
+
+    <div class="board-container" id="board-container" style="display: none;">
+        </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
