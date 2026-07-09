@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe 3D Web</title>
+    <style>
+        /* ========================================================
+           DISEÑO Y ESTILOS (CSS)
+           ======================================================== */
+        /* Configuración base de la pantalla: centrado, fondo oscuro y adaptabilidad */
+        body {
+            background-color: #0f172a; color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 20px 10px; min-height: 100vh; box-sizing: border-box;
+            overflow-x: hidden; /* Previene que la pantalla se deslice de lado a lado en celulares */
+        }
+        
+        /* Contenedor que agrupa todo el juego para mantener proporciones */
+        .main-content {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            width: 100%; max-width: 600px;
+        }
+
+        h1 { color: #38bdf8; margin-bottom: 5px; text-align: center; }
+        #status { color: #fcd34d; margin-bottom: 10px; font-weight: bold; font-size: 18px; text-align: center; }
+        
+        /* Controles de entrada (input de texto y botones) */
+        .controls { margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; }
+        input { padding: 10px; border-radius: 5px; border: none; outline: none; text-align: center; max-width: 200px; }
+        button {
+            padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;
+            font-weight: bold; color: white; background-color: #059669; transition: 0.2s;
+        }
+        button:hover { opacity: 0.8; }
+        button:disabled { background-color: #475569; cursor: not-allowed; opacity: 1; }
+        #btnLeave { background-color: #e11d48; padding: 6px 12px; font-size: 13px; }
+
+        /* Estructura del tablero 3D: Se muestran 2 niveles arriba y 2 abajo en computadoras */
+        .board-container { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; 
+        }
+        
+        /* Cada "piso" o nivel del tablero tridimensional */
+        .layer { background: #1e293b; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; }
+        .layer h3 { margin-top: 0; margin-bottom: 10px; text-align: center; color: #94a3b8; font-size: 14px; }
+        
+        /* Las casillas individuales (matriz 4x4) */
+        .grid { display: grid; grid-template-columns: repeat(4, 50px); gap: 5px; }
+        .cell {
+            width: 50px; height: 50px; background-color: #334155;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; font-weight: bold; cursor: pointer;
+            border-radius: 5px; user-select: none; transition: 0.2s;
+        }
+        .cell:hover { background-color: #475569; }
+        .cell.X { color: #0284c7; } /* Color azul para X */
+        .cell.O { color: #e11d48; } /* Color rojo para O */
+        .cell.win { background-color: #f59e0b; color: black; } /* Resaltado al ganar */
+
+        /* Pie de página con créditos del desarrollador */
+        .footer {
+            margin-top: 40px; padding-bottom: 10px; color: #64748b; font-size: 14px;
+            text-align: center; letter-spacing: 0.5px; width: 100%;
+        }
+        .footer span { color: #38bdf8; font-weight: bold; }
+
+        /* Diseño Responsivo: Si la pantalla es pequeña (celulares), los tableros se apilan en 1 sola columna */
+        @media (max-width: 550px) {
+            .board-container { grid-template-columns: 1fr; gap: 15px; }
+            .cell { width: 50px; height: 50px; }
+            h1 { font-size: 24px; }
+
+             /* En móvil, el log se fija al fondo de la pantalla para que siempre sea visible */
+            #move-log-container {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                background: #0f172a;
+                border-top: 1px solid #334155;
+                padding: 8px 10px;
+                margin-top: 0;
+            }
+            #move-log {
+                max-height: 70px; /* Altura reducida para no tapar el tablero */
+            }
+            /* Padding inferior para que el log fijo no tape el contenido del juego */
+            .main-content {
+                padding-bottom: 130px;
+            }
+        }
+     /* Estilos para el panel de registro de coordenadas */
+        #move-log-container { margin-top: 20px; width: 100%; }
+        #move-log-container h3 { color: #94a3b8; text-align: center; margin-bottom: 8px; font-size: 14px; }
+        #move-log { background: #1e293b; border-radius: 8px; padding: 10px; max-height: 160px; overflow-y: auto; font-size: 13px; font-family: monospace; }
+        .log-entry { padding: 4px 2px; border-bottom: 1px solid #334155; }
+        .log-entry.X { color: #38bdf8; }
+        .log-entry.O { color: #e11d48; }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <h1>Tic Tac Toe 3D</h1>
+        
+        <div id="room-actions" style="display: none; margin-bottom: 15px;">
+            <button id="btnLeave" onclick="leaveRoom()">🚪 Salir de la Sala</button>
+        </div>
+
+        <div id="status">Ingresa un nombre de sala para jugar con un amigo</div>
+        
+        <div class="controls" id="controls">
+            <input type="text" id="roomName" placeholder="Ej: sala123">
+            <button onclick="joinGame()">Unirse a Partida</button>
+        </div>
+
+        <div class="board-container" id="board-container" style="display: none;"></div>
+
+        <div id="end-actions" style="display: none; margin-top: 25px;">
+            <button id="btnRestart" onclick="requestRestart()">🔄 Jugar de Nuevo</button>
+        </div>
+
+        <!-- Panel de coordenadas: vacío al inicio, se llena con cada jugada de ambos jugadores -->
+        <div id="move-log-container" style="display: none;">
+            <h3>📍 Registro de Coordenadas</h3>
+            <div id="move-log"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Hecho por: <span>Raynier Aguilar</span>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
